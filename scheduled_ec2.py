@@ -3,7 +3,7 @@
 # Purpose: This lambda function will managed the automatic start and shutdown of ec2 instance based on user specify times
 # Prereq: 
 #	EC2 instances will need the following tags (Time is in UTC):
-#		Schedule : true
+#		Scheduled : True
 #		ScheduleStart: 00:00
 #		ScheduleStop: 00:00
 #		(optional) ExcludedDays: MTWHFSU
@@ -34,7 +34,7 @@ def lambda_handler(event, context):
 	
 	# Getting all ec2 instances that are tagged for automatic control
 	filters = [{
-		'Name': 'tag: Scheduled',
+		'Name': 'tag:Scheduled',
 		'Values': ['True']
 	}]
 	
@@ -49,7 +49,7 @@ def lambda_handler(event, context):
 	
 	for instance in instances:
 		for tag in instance.tags:
-			if tag['key'] == 'ExcludedDays':
+			if tag['Key'] == 'ExcludedDays':
 				
 				# Spliting the excluded String in separated values
 				excluded_days[:] = tag['Value']
@@ -60,8 +60,8 @@ def lambda_handler(event, context):
 						skip = True
 						break
 			
-			if !skip: 
-				if tag['key'] == 'ScheduleStop':
+			if not skip: 
+				if tag['Key'] == 'ScheduleStop':
 					stop_time = tag['Value'].split(':')
 					if stop_time[0] == current_time:
 						stop_instances.append(instance.id)
@@ -74,8 +74,10 @@ def lambda_handler(event, context):
 	# Shutdowning/Starting Up instances
 	if len(stop_instances) > 0:
 		stop = ec2.instances.filter(InstanceIds=stop_instances).stop()
-		print('Stopped the following instances: ' + stop)
+		print('Stopped the following instances: ')
+		print(stop_instances)
 	
 	if len(start_instances) > 0:
 		start = ec2.instances.filter(InstanceIds=start_instances).start()
-		print('Started the following instances: ' + start)
+		print('Started the following instances: ')
+		print(start_instances)
